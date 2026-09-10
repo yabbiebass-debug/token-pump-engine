@@ -161,11 +161,20 @@ async def status():
     threshold = float((acct or {}).get('payment_threshold') or 0.05)
     pending = float((acct or {}).get('balance') or 0)
     online = [w for w in workers if w['online']]
+    rewarded_24h = 0.0
+    try:
+        rewarded_24h = float(((stats or {}).get('rewarded') or {}).get('past_24h') or 0)
+    except (TypeError, ValueError):
+        rewarded_24h = 0.0
+    to_go = max(0.0, threshold - pending)
+    days_to_payout = (to_go / rewarded_24h) if rewarded_24h > 0 else None
     return {
         'pool': 'unMineable', 'payout_coin': 'SOL', 'address': SOL_RECIPIENT, 'ok': bool(acct), 'uuid': uuid,
         'dashboard_url': f'https://unmineable.com/coins/SOL/address/{SOL_RECIPIENT}',
         'pending_sol': pending, 'pending_usd': pending * sol_usd, 'payable_sol': float((acct or {}).get('balance_payable') or 0),
         'payment_threshold_sol': threshold, 'threshold_pct': min(100.0, pending / threshold * 100) if threshold else 0, 'pool_fee_pct': float((acct or {}).get('mining_fee') or 1),
+        'live': {'rewarded_24h_sol': rewarded_24h, 'rewarded_24h_usd': rewarded_24h * sol_usd,
+                 'sol_to_go': to_go, 'days_to_payout_at_current_rate': days_to_payout},
         'auto_pay': bool((acct or {}).get('auto')), 'fresh': bool((acct or {}).get('fresh', True)),
         'rewarded': (stats or {}).get('rewarded') or {'past_24h': '0', 'past_7d': '0', 'past_30d': '0'}, 'paid_total_sol': float((stats or {}).get('paid') or 0),
         'last_payment': (stats or {}).get('last_payment'),
