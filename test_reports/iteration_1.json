@@ -1,0 +1,30 @@
+{
+  "summary": "First iteration end-to-end tests for YABBAI Forge · $BASH Flywheel. Backend pytest suite (22 tests) — all passed. Frontend Playwright coverage of Home, Pricing, Mission Control, Flywheel and Pulse pages — all critical flows working. Live external APIs (pump.fun, DexScreener, Jupiter, Solana RPC) responding; simulated buybacks and payments working as designed. One minor selector-naming mismatch in FlowDiagram data-testids vs review-request expectation (loop/convert/inject vs cycle-taps/conversion/injection).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "FlowDiagram (/flywheel)", "issue": "Only 5 of 8 expected flow-node testids match the review-request naming. Code uses ids 'loop','convert','inject' while request expected 'cycle-taps','conversion','injection'. Renders correctly visually.", "selector": "[data-testid=\"flow-node-loop\"] vs flow-node-cycle-taps; flow-node-convert vs flow-node-conversion; flow-node-inject vs flow-node-injection", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "OPTIONAL: Rename FlowDiagram node ids to match the review request testids (loop->cycle-taps, convert->conversion, inject->injection) or update product spec. All 8 nodes render, so purely a testid naming alignment."
+  ],
+  "critical_code_review_comments": [
+    "server.py uses deprecated FastAPI @on_event('startup'/'shutdown'); prefer lifespan context manager to avoid runtime deprecation warnings.",
+    "routers/withdrawals.py: TOCTOU risk between vault_summary() check and inserting withdrawal — two concurrent withdraws could exceed available balance. Consider a DB-level atomic decrement / transaction.",
+    "routers/payments.py trusts client-provided amount_usd derivation; ok for demo (SIMULATED) but should be flagged if this ever goes to production."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "100% (22/22)", "frontend": "~95% (all major flows pass; minor testid naming mismatch)"},
+  "test_credentials": "None required (no auth). Promo: PULSE250. Sample real Solana signature used for attest test: 4t39fjyTZGijZST5qjFZEwikFXwfifdhqYHjDV82LFuHi31rxnj3rP7UtxA9LqgYNvfFuWAJ5Nh26P5gz8LDpUqi.",
+  "seed_data_creation": "Tests inserted a few TEST_-prefixed leads/clients/payments/withdrawals in the demo DB via public endpoints. Cycles_count also advanced. All data is demo/simulated.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/backend_test.py — run with `pytest backend/tests/backend_test.py -v`. All flywheel/payment/withdrawal/agent-demo/state/market/lead/approval endpoints validated. Restored flywheel hourly_capacity_sol to 0.25 after tests. The 3 flow-node testid names on /flywheel do not match request spec (loop/convert/inject) — reported as low-priority."
+}
