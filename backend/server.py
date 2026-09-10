@@ -14,7 +14,7 @@ from db import client  # noqa: E402
 from seed import ensure_seed  # noqa: E402
 from services.auth import seed_director  # noqa: E402
 from services.scheduler import scheduler_loop  # noqa: E402
-from routers import state, cycle, leads, approvals, payments, withdrawals, flywheel, market, agent_demo, auth, alerts, live, clients, mining  # noqa: E402
+from routers import state, cycle, leads, approvals, payments, withdrawals, flywheel, market, agent_demo, auth, alerts, live, clients, mining, executor, splits, nodes  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('server')
@@ -33,7 +33,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title='YABBAI Forge · $BASH Flywheel API', lifespan=lifespan)
 
-for r in (state, cycle, leads, approvals, payments, withdrawals, flywheel, market, agent_demo, auth, alerts, live, clients, mining):
+for r in (state, cycle, leads, approvals, payments, withdrawals, flywheel, market, agent_demo, auth, alerts, live, clients, mining, executor, splits, nodes):
     app.include_router(r.router, prefix='/api')
 
 

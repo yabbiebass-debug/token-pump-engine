@@ -3,7 +3,7 @@ import logging
 import time
 from datetime import timedelta
 from db import db
-from services import flywheel, market, treasury, mining
+from services import flywheel, market, treasury, mining, executor
 from services.cycle import run_cycle
 from services.events import get_app_state
 from services.util import utcnow, iso, parse
@@ -30,6 +30,10 @@ async def scheduler_loop():
         try:
             now = utcnow()
             await flywheel.tick(now)
+            try:
+                await executor.auto_tick(now)
+            except Exception as e:
+                log.warning('executor tick failed: %s', e)
             app = await get_app_state()
             last_cycle = parse(app['last_cycle_at']) if app.get('last_cycle_at') else None
             if app.get('auto_cycle') and (not last_cycle or (now - last_cycle).total_seconds() >= AUTO_CYCLE_SECONDS):
