@@ -1,7 +1,8 @@
 import React from 'react';
-import { ShoppingCart, RefreshCw, Pickaxe, ArrowLeftRight, Vault, Gauge, Syringe, Rocket } from 'lucide-react';
+import { ShoppingCart, Pickaxe, Vault, Gauge, FileSignature, ShieldCheck, Rocket } from 'lucide-react';
 import { Panel, Eyebrow } from '@/components/kit/Primitives';
-import { sol, pct, countdown, compact } from '@/lib/format';
+import { useMining } from '@/hooks/useData';
+import { sol, pct, compact } from '@/lib/format';
 
 const Arrow = ({ hot }) => (
   <svg className="hidden xl:block h-6 w-10 shrink-0 self-center" viewBox="0 0 40 24">
@@ -11,20 +12,21 @@ const Arrow = ({ hot }) => (
 );
 
 export const FlowDiagram = ({ data }) => {
-  const { state: s, derived: d, config: c } = data;
+  const { state: s, derived: d, config: c, live } = data;
+  const { data: m } = useMining();
+  const intent = live?.pending_intent;
   const nodes = [
-    { Icon: ShoppingCart, name: 'Purchases', tone: 'text-purple', border: 'border-purple/40', v: sol(s.total_allocated_sol, 2), sub: `${Math.round(c.buyback_pct * 100)}% of each fee`, id: 'purchases' },
-    { Icon: RefreshCw, name: 'Agent loop', tone: 'text-purple', border: 'border-purple/40', v: sol(s.total_tapped_sol, 2), sub: `8 taps × ${(c.stage_tap_pct * 100).toFixed(2)}% MRR`, id: 'loop' },
-    { Icon: Pickaxe, name: 'Hash mining', tone: 'text-amber', border: 'border-amber/40', v: `${d.mined_balance_live.toFixed(5)} ${c.mined_symbol}`, sub: `${c.hashrate_khs} kH/s · ${d.mined_per_hour_sol.toFixed(4)} SOL/h`, id: 'mining', live: true },
-    { Icon: ArrowLeftRight, name: 'Convert', tone: 'text-amber', border: 'border-amber/40', v: countdown(d.seconds_to_next_conversion), sub: `${s.conversions_count} sweeps · ${sol(s.total_converted_sol, 4)}`, id: 'convert' },
-    { Icon: Vault, name: 'Reserve', tone: 'text-ink', border: 'border-line', v: sol(s.buyback_reserve_sol, 2), sub: `≈ $${d.reserve_usd.toFixed(0)}`, id: 'reserve', hot: true },
-    { Icon: Gauge, name: 'Governor', tone: d.governor_active ? 'text-red' : 'text-green', border: d.governor_active ? 'border-red/50' : 'border-green/40', v: d.governor_active ? 'DELAYING' : `${pct(d.window_usage_pct, 0)} used`, sub: `${d.window_injected_sol.toFixed(3)} / ${c.hourly_capacity_sol} SOL`, id: 'governor' },
-    { Icon: Syringe, name: 'Inject', tone: 'text-green', border: 'border-green/40', v: sol(s.total_injected_sol, 2), sub: `${s.injections_count} buys · ${compact(s.total_tokens_acquired)} $BASH`, id: 'inject' },
-    { Icon: Rocket, name: 'Upstream', tone: 'text-green', border: 'border-green/40', v: pct(d.projected_curve_progress_pct, 2), sub: `to 85 SOL graduation`, id: 'upstream' },
+    { Icon: ShoppingCart, name: 'SOL payments', tone: 'text-purple', border: 'border-purple/40', v: sol(s.total_allocated_sol, 4), sub: `${Math.round(c.buyback_pct * 100)}% of each verified payment`, id: 'purchases' },
+    { Icon: Pickaxe, name: 'Hash mining', tone: 'text-amber', border: 'border-amber/40', v: m ? sol(m.pending_sol, 5) : '…', sub: m ? `${m.workers_online} worker(s) · unMineable → SOL · ${sol(s.total_mining_sol || 0, 4)} earmarked` : 'reading pool', id: 'mining', live: !!m?.workers_online },
+    { Icon: Vault, name: 'Reserve', tone: 'text-ink', border: 'border-line', v: sol(s.buyback_reserve_sol, 4), sub: `≈ $${d.reserve_usd.toFixed(2)} earmarked`, id: 'reserve', hot: true },
+    { Icon: Gauge, name: 'Governor', tone: d.governor_active ? 'text-red' : 'text-green', border: d.governor_active ? 'border-red/50' : 'border-green/40', v: d.governor_active ? 'DELAYING' : `${pct(d.window_usage_pct, 0)} used`, sub: `${d.window_injected_sol.toFixed(4)} / ${c.hourly_capacity_sol} SOL per ${c.window_min} min`, id: 'governor' },
+    { Icon: FileSignature, name: 'Director signs', tone: intent ? 'text-amber' : 'text-dim', border: intent ? 'border-amber/50' : 'border-line-subtle', v: intent ? sol(intent.amount_sol, 4) : 'idle', sub: intent ? 'release awaiting wallet signature' : 'no release pending', id: 'sign', live: !!intent },
+    { Icon: ShieldCheck, name: 'Verified buys', tone: 'text-green', border: 'border-green/40', v: sol(s.total_injected_sol, 4), sub: `${s.injections_count} tx · ${compact(s.total_tokens_acquired)} $BASH`, id: 'inject' },
+    { Icon: Rocket, name: 'Upstream', tone: 'text-green', border: 'border-green/40', v: pct(d.live_curve_progress_pct, 3), sub: `curve → ${d.graduation_target_sol} SOL graduation`, id: 'upstream' },
   ];
   return (
     <Panel className="p-5" data-testid="flow-diagram">
-      <Eyebrow className="mb-4 flex items-center justify-between"><span>Pipeline · live</span><span className="text-[9px] text-dim2 normal-case tracking-normal">Every stage is ledgered. Governor paces the pump.</span></Eyebrow>
+      <Eyebrow className="mb-4 flex items-center justify-between"><span>Pipeline · real funds only</span><span className="text-[9px] text-dim2 normal-case tracking-normal">Every node is backed by an on-chain transaction or a governor decision.</span></Eyebrow>
       <div className="flex flex-col xl:flex-row gap-2 xl:gap-0 stagger">
         {nodes.map((n, i) => (
           <React.Fragment key={n.id}>
@@ -34,7 +36,7 @@ export const FlowDiagram = ({ data }) => {
               <div className={`font-display text-[11.5px] font-black truncate ${n.tone}`} title={n.v}>{n.v}</div>
               <div className="text-[9.5px] text-dim2 truncate" title={n.sub}>{n.sub}</div>
             </div>
-            {i < nodes.length - 1 && <Arrow hot={i >= 3} />}
+            {i < nodes.length - 1 && <Arrow hot={i >= 1} />}
           </React.Fragment>
         ))}
       </div>

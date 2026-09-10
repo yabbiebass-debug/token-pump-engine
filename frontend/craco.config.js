@@ -84,6 +84,21 @@ let webpackConfig = {
       '@': path.resolve(__dirname, 'src'),
     },
     configure: (webpackConfig) => {
+      webpackConfig.resolve = webpackConfig.resolve || {};
+      webpackConfig.resolve.fallback = {
+        ...(webpackConfig.resolve.fallback || {}),
+        buffer: require.resolve('buffer/'),
+        process: require.resolve('process/browser.js'),
+        stream: require.resolve('stream-browserify'),
+        crypto: require.resolve('crypto-browserify'),
+        vm: false,
+      };
+      webpackConfig.plugins.push(
+        new (require('webpack').ProvidePlugin)({
+          Buffer: ['buffer', 'Buffer'],
+        }),
+      );
+      webpackConfig.ignoreWarnings = [...(webpackConfig.ignoreWarnings || []), /Failed to parse source map/];
 
       // Add ignored patterns to reduce watched directories
         webpackConfig.watchOptions = {

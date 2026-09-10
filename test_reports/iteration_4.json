@@ -1,0 +1,29 @@
+{
+  "summary": "Iteration 4 — REAL-ONLY mode verification. Backend: 26/26 pytest cases pass covering vault, state purge, flywheel status/config/ledger, removed endpoints (fast-forward/convert 404), treasury activity indexer (25 real mainnet txs incl. buybacks), treasury/sync auth guard, payments quote (Merge+PULSE250 = $2150 fee/$250 discount/recipient=treasury/min_ratio=0.97), payment method removal (no method field; sol_signature required; 422 on garbage), verify-sol malformed 88-char (valid=false + 'Malformed' reason, no 500), historic outbound buyback signature => valid=false, withdrawals auth (401 unauth, 422 garbage/malformed, 422 'is a buyback' for outbound tx), live/status LIVE_DIRECTOR_SIGNED with pending_intent=null/injections_count=0, PUT flywheel/config with mode ignored (400), config update persists, inject below_min (reserve 0, min 0.005), live/confirm 4xx (no 500), cycle/run emits 9 events with wallet.ok=true and NO fabricated 'Scanned'/'Niche Community' text, clients PATCH 401/404. Frontend: home/pricing/mission-anon/flywheel/login all pass all assertions — no Card/PayPal buttons, sol-checkout-panel with treasury recipient and disabled confirm button, malformed sig verify shows 'Malformed transaction signature' error inline, kpi-vault shows '0.0015 SOL' + ON-CHAIN badge, 25 treasury-tx rows on Mission→Treasury, flywheel live-mode-tag reads 'LIVE · DIRECTOR-SIGNED', no live-mode-switch-btn, flow nodes purchases/reserve/governor/sign/inject/upstream present and mining/convert/loop absent, no config-hashrate_khs, transparency filters all/injection/delayed/allocation (no conversion), CSV href ends /api/flywheel/ledger.csv, hero-mode-tag says 'on-chain, Director-signed', 6 flywheel-steps, ticker has 'BOUGHT ON-CHAIN' with no SIM text, footer mentions SOL only, no Buffer/process console errors. Director login works and lands on /mission with auto-cycle-toggle and run-cycle-btn present.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Global", "issues": ["A few 3rd-party asset requests fail with ERR_BLOCKED_BY_RESPONSE.NotSameOrigin (non-blocking; likely favicon/analytics)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration_4.py",
+    "/app/test_reports/pytest/iteration_4.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routers/withdrawals.py: /treasury/sync correctly guarded by get_current_director; consider adding a rate limit since it triggers RPC calls.",
+    "routers/clients.py: PATCH /clients/{id} returns 400 when the payload has only unknown fields (filtered to empty patch). Consider returning 422 and enumerating allowed fields for clarity.",
+    "Session-based cookie auth means requests.Session() carries auth cookies across tests after /auth/login; document this to avoid confused negative-auth tests."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration_4.py"],
+  "success_rate": {"backend": "100% (26/26)", "frontend": "6/6 real assertions; 2 test-script false-positives noted"},
+  "test_credentials": "Director bashammgaming@gmail.com / ChillOverdrive2017! (from /app/memory/test_credentials.md); login works.",
+  "seed_data_creation": "None. No leads/clients/payments/withdrawals created. Only PUT flywheel/config hourly_capacity_sol was set to 0.25 — main agent should reset if desired (previously default may differ).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "REAL-ONLY architecture confirmed working end-to-end. Wallet has ~0.0015 SOL on mainnet — do not attempt real purchases/withdrawals. The transparency-mode-tag reads 'LIVE — DIRECTOR-SIGNED BUYBACKS FROM HTN1fv…ZV5i' (em-dash, uppercase); case-insensitive checks recommended. httpOnly cookie auth: requests.Session used to login inherits cookies, so unauth-negative tests must use a fresh requests call, not the shared session. Cycle events produce exactly 9 items per run and injection returns 'below_min' with reserve_sol=0. Treasury activity indexer returned 25 items including at least one buyback (token_delta≈349871).",
+  "rca of the issue": "N/A — no critical bugs. Two initial pytest failures were test-script defects (shared session cookies, wrong ClientUpdate field name); fixed and all tests now pass."
+}

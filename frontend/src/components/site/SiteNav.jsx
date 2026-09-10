@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, Zap, Terminal } from 'lucide-react';
+import { Menu, X, Zap, Terminal, Lock, LogOut, ShieldCheck } from 'lucide-react';
 import { useFlywheel } from '@/hooks/useData';
+import { useAuth } from '@/lib/auth';
 import { tiny } from '@/lib/format';
 
 const LINKS = [
@@ -9,6 +10,7 @@ const LINKS = [
   { to: '/pricing', label: 'Pricing', id: 'pricing' },
   { to: '/mission', label: 'Mission Control', id: 'mission' },
   { to: '/flywheel', label: '$BASH Flywheel', id: 'flywheel', hot: true },
+  { to: '/transparency', label: 'Transparency', id: 'transparency' },
   { to: '/pulse', label: 'Pulse', id: 'pulse' },
 ];
 
@@ -16,6 +18,7 @@ export const SiteNav = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { data } = useFlywheel();
+  const { user, logout } = useAuth();
   const token = data?.token;
 
   const item = (l) => (
@@ -33,6 +36,15 @@ export const SiteNav = () => {
     >
       {l.label}
     </NavLink>
+  );
+
+  const directorControl = user ? (
+    <div className="flex items-center gap-1.5" data-testid="nav-director">
+      <span className="hidden xl:inline-flex items-center gap-1 text-[9px] uppercase tracking-[1.5px] px-2 py-1 rounded-sm border border-amber/40 bg-amber/10 text-amber font-bold"><ShieldCheck className="h-3 w-3" /> Director</span>
+      <button onClick={logout} className="text-dim hover:text-ink p-1.5 border border-line-subtle rounded-sm" title={`Sign out ${user.email}`} data-testid="nav-logout-btn"><LogOut className="h-3.5 w-3.5" /></button>
+    </div>
+  ) : (
+    <Link to="/login" className="flex items-center gap-1 text-[9.5px] uppercase tracking-[1.5px] text-dim hover:text-amber px-2 py-1.5 border border-line-subtle rounded-sm" data-testid="nav-login-link"><Lock className="h-3 w-3" /> Director</Link>
   );
 
   return (
@@ -63,6 +75,7 @@ export const SiteNav = () => {
               </span>
             </div>
           )}
+          <div className="hidden sm:block">{directorControl}</div>
           <button
             onClick={() => navigate('/pricing')}
             data-testid="nav-cta-start-build"
@@ -78,6 +91,7 @@ export const SiteNav = () => {
       {open && (
         <div className="lg:hidden border-t border-line bg-panel px-4 py-3 flex flex-col gap-1.5" data-testid="nav-mobile-menu">
           {LINKS.map(item)}
+          <div className="pt-2">{directorControl}</div>
         </div>
       )}
     </header>

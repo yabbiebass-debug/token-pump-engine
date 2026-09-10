@@ -5,7 +5,7 @@ from services.util import utcnow, iso, new_id
 async def get_app_state():
     doc = await db.app_state.find_one({'key': 'state'}, {'_id': 0})
     if not doc:
-        doc = {'key': 'state', 'cycles_count': 42, 'auto_cycle': False, 'last_cycle_at': None}
+        doc = {'key': 'state', 'cycles_count': 0, 'auto_cycle': False, 'last_cycle_at': None}
         await db.app_state.insert_one(dict(doc))
     return doc
 

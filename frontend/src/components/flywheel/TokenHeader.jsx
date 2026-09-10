@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ExternalLink, Copy, Check } from 'lucide-react';
 import { Panel, Tag, Eyebrow } from '@/components/kit/Primitives';
 import { TokenImage } from '@/components/kit/TokenImage';
+import { copyText } from '@/lib/clipboard';
 import { tiny, usd, pct, short, timeAgo, compact } from '@/lib/format';
 
 export const TokenHeader = ({ data }) => {
@@ -10,7 +11,7 @@ export const TokenHeader = ({ data }) => {
   if (!t) {
     return <Panel className="p-5 text-[11px] text-amber" data-testid="token-header-offline">Live token feed temporarily unavailable — engine continues on last known curve state.</Panel>;
   }
-  const copy = () => { navigator.clipboard.writeText(t.mint); setCopied(true); setTimeout(() => setCopied(false), 1500); };
+  const copy = async () => { if (await copyText(t.mint)) { setCopied(true); setTimeout(() => setCopied(false), 1500); } };
   const up = t.price_change_24h_pct >= 0;
   return (
     <Panel className="p-5 sm:p-6 scanline overflow-hidden" data-testid="token-header">
@@ -59,7 +60,7 @@ export const TokenHeader = ({ data }) => {
         <span>Supply {compact(t.total_supply)}</span>
         <span>Sources: {t.sources.join(' · ')}</span>
         <span>Fetched {timeAgo(t.fetched_at)}</span>
-        <span className="ml-auto text-amber">Engine mode: {data.config.mode} — computed on live curve math, never broadcast</span>
+        <span className="ml-auto text-green">Engine: LIVE · every buyback is Director-signed and verified on-chain</span>
       </div>
     </Panel>
   );

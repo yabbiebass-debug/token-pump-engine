@@ -18,3 +18,62 @@
   font-size: 10px;
   font-family: "JetBrains Mono", monospace;
 }
+
+.wallet-btn .wallet-adapter-button {
+  background: #9945ff;
+  color: #fff;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 2px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  line-height: 34px;
+  transition: background-color 200ms, box-shadow 200ms;
+}
+
+.wallet-btn .wallet-adapter-button:not([disabled]):hover {
+  background: #8033e0;
+  box-shadow: 0 0 18px rgba(153, 69, 255, 0.45);
+}
+
+.wallet-btn .wallet-adapter-button-start-icon,
+.wallet-btn .wallet-adapter-button-start-icon img {
+  width: 16px;
+  height: 16px;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: #11141e !important;
+  border: 1px solid rgba(153, 69, 255, 0.35);
+  border-radius: 4px !important;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.wallet-adapter-modal-title {
+  font-family: "Unbounded", sans-serif;
+  font-size: 16px !important;
+  color: #f0f3f8 !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background: #181d2c !important;
+}
+
+.wallet-adapter-modal-button-close {
+  background: #181d2c !important;
+}
+
+.wallet-adapter-dropdown-list {
+  background: #11141e !important;
+  border: 1px solid rgba(153, 69, 255, 0.35);
+  font-family: "JetBrains Mono", monospace;
+}

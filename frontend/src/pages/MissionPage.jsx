@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Play } from 'lucide-react';
 import { useAppState, useFlywheel, useVault, useRefresh } from '@/hooks/useData';
+import { useDirectorGuard } from '@/lib/auth';
 import { runCycle, setAutoCycle, errMsg } from '@/lib/api';
 import { STAGES } from '@/lib/constants';
 import { Panel, Eyebrow, Btn } from '@/components/kit/Primitives';
@@ -21,6 +22,7 @@ export default function MissionPage() {
   const { data: fly } = useFlywheel();
   const { data: vault } = useVault();
   const refresh = useRefresh();
+  const { guard, isDirector } = useDirectorGuard();
   const [tab, setTab] = useState('Pipeline');
   const [activeStage, setActiveStage] = useState(null);
   const [running, setRunning] = useState(false);
@@ -44,22 +46,22 @@ export default function MissionPage() {
     lastCycle.current = n;
   }, [data?.state?.cycles_count]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const onRun = async () => {
+  const onRun = guard(async () => {
     if (running) return;
     setRunning(true);
     try {
       const [res] = await Promise.all([runCycle(), animate()]);
       lastCycle.current = res.cycle_n;
       refresh();
-      toast.success(`Cycle #${res.cycle_n} complete · ${res.taps_sol.toFixed(4)} SOL tapped → reserve · injection ${res.injection.status}`);
+      toast.success(`Cycle #${res.cycle_n} complete · balances refreshed · ${res.new_activity} new on-chain tx · buyback ${res.injection.status}`);
     } catch (e) {
       toast.error(errMsg(e));
     } finally {
       setRunning(false);
     }
-  };
+  });
 
-  const onToggleAuto = async () => {
+  const onToggleAuto = guard(async () => {
     try {
       const st = await setAutoCycle(!data.state.auto_cycle);
       refresh();
@@ -67,7 +69,7 @@ export default function MissionPage() {
     } catch (e) {
       toast.error(errMsg(e));
     }
-  };
+  });
 
   if (isLoading || !data) {
     return <div className="mx-auto max-w-7xl px-6 py-20 text-dim text-[12px]" data-testid="mission-loading">Booting Mission Control…</div>;
@@ -75,7 +77,7 @@ export default function MissionPage() {
 
   return (
     <div className="pb-16" data-testid="mission-page">
-      <KpiBar data={data} fly={fly} vault={vault} onRun={onRun} onToggleAuto={onToggleAuto} running={running} activeStage={activeStage} onWithdraw={() => setTab('Treasury')} />
+      <KpiBar data={data} fly={fly} vault={vault} onRun={onRun} onToggleAuto={onToggleAuto} running={running} activeStage={activeStage} onWithdraw={() => setTab('Treasury')} isDirector={isDirector} />
       <div className="mx-auto max-w-7xl p-4 sm:p-6 grid gap-6 lg:grid-cols-12">
         <aside className="lg:col-span-3 space-y-4">
           <Panel className="p-4">
@@ -85,7 +87,7 @@ export default function MissionPage() {
             </Eyebrow>
             <CycleRing cycles={data.state.cycles_count} activeStage={activeStage} />
             <p className="mt-3 text-[10.5px] text-dim leading-relaxed text-center">
-              Amber keys are Director gates. Every stage taps <span className="text-purple">{((fly?.config?.stage_tap_pct || 0) * 100).toFixed(2)}%</span> of MRR into the $BASH reserve; REINVEST triggers the INJECTOR.
+              Amber keys are Director gates. Each cycle refreshes real on-chain balances, indexes new treasury transactions, and asks the governor whether <span className="text-purple">{((fly?.config?.buyback_pct || 0) * 100).toFixed(0)}%</span> of verified SOL revenue can be released for a buyback.
             </p>
             <Btn variant="primary" className="w-full mt-3 lg:hidden" onClick={onRun} disabled={running} data-testid="run-cycle-btn-mobile"><Play className="h-3 w-3" /> Run cycle</Btn>
           </Panel>

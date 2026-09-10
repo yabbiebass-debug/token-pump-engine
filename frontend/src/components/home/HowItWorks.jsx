@@ -4,7 +4,7 @@ import { Eyebrow, Panel } from '@/components/kit/Primitives';
 
 const STEPS = [
   { Icon: Search, title: 'Tell us the niche', desc: 'Tell us the corner of the universe that needs a tool — a hobby, a trade, a game, a lab, a market. We scan what already exists and what is missing.' },
-  { Icon: GitFork, title: 'Fork, Merge, or Forge', desc: 'We pick the path: adapt one proven repo, merge several into one product, or build from scratch. Fixed price, checkout by card, PayPal, or SOL.' },
+  { Icon: GitFork, title: 'Fork, Merge, or Forge', desc: 'We pick the path: adapt one proven repo, merge several into one product, or build from scratch. Fixed price, paid in SOL and verified on Solana mainnet.' },
   { Icon: Bot, title: 'Agent loop + human gate', desc: 'Nine agents scout, license-check, build, test, and inject. No release ships and no message goes out without Director sign-off.' },
   { Icon: Rocket, title: 'Shipped under your name', desc: 'Published on GitHub and the right registry, with a paid layer if you want one. Optional monthly stewardship keeps it alive.' },
 ];
@@ -12,7 +12,7 @@ const STEPS = [
 const GUARANTEES = [
   { Icon: ShieldAlert, title: 'No rogue releases', desc: 'No agent publishes a package, messages a community, or moves money without explicit approval.' },
   { Icon: Scale, title: 'License-clean by default', desc: 'Every upstream repo and dependency is checked for fork, rebrand, and resale rights before a line is changed.' },
-  { Icon: Landmark, title: 'Transparent treasury', desc: 'Every sale, sweep, conversion, and buyback is ledgered in Mission Control, with the SOL treasury visible on Solscan.' },
+  { Icon: Landmark, title: 'Transparent treasury', desc: 'Every payment, transfer, and buyback is a real Solana transaction — ledgered in Mission Control and on the public Transparency page, with the treasury wallet visible on Solscan.' },
 ];
 
 export const HowItWorks = () => (

@@ -16,11 +16,11 @@ export const TokenTicker = () => {
     ['VOL 24H', usd(t.volume_24h_usd, 2), 'text-ink'],
     ['CURVE', `${pct(t.curve_progress_pct, 3)} → graduation`, 'text-amber'],
     ['SOL', usd(t.sol_price_usd, 2), 'text-ink'],
-    ['RESERVE', sol(s.buyback_reserve_sol, 3), 'text-purple'],
-    ['SIM INJECTED', sol(s.total_injected_sol, 3), 'text-green'],
-    ['SIM POSITION', `${compact(s.total_tokens_acquired)} $BASH`, 'text-green'],
+    ['RESERVE', sol(s.buyback_reserve_sol, 4), 'text-purple'],
+    ['BOUGHT ON-CHAIN', sol(s.total_injected_sol, 4), 'text-green'],
+    ['ACQUIRED', `${compact(s.total_tokens_acquired)} $BASH`, 'text-green'],
     ['GOVERNOR', d.governor_active ? 'DELAYING · CAP HIT' : `${pct(d.window_usage_pct, 0)} of window`, d.governor_active ? 'text-red' : 'text-dim'],
-    ['MODE', data.config.mode, 'text-amber'],
+    ['MODE', 'LIVE · DIRECTOR-SIGNED', 'text-green'],
   ];
   const row = (k) => (
     <div key={k} className="flex shrink-0 items-center gap-8 pr-8">

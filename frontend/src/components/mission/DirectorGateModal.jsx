@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { X, ShieldAlert, Check, Ban, ShieldCheck } from 'lucide-react';
+import { X, ShieldAlert, Check, Ban, ShieldCheck, Lock } from 'lucide-react';
 import { Btn } from '@/components/kit/Primitives';
 import { approveGate, rejectGate, errMsg } from '@/lib/api';
 import { useRefresh } from '@/hooks/useData';
+import { useDirectorGuard } from '@/lib/auth';
 
 export const DirectorGateModal = ({ approval, onClose }) => {
   const refresh = useRefresh();
+  const { guard, isDirector } = useDirectorGuard();
   const [busy, setBusy] = useState(false);
   if (!approval) return null;
 
-  const decide = async (fn, label) => {
+  const decide = guard(async (fn, label) => {
     setBusy(true);
     try { await fn(approval.id); refresh(); toast.success(`Gate ${label}: ${approval.title}`); onClose(); } catch (e) { toast.error(errMsg(e)); } finally { setBusy(false); }
-  };
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/85 backdrop-blur-sm p-4" data-testid="director-gate-modal" onClick={onClose}>
@@ -35,6 +37,9 @@ export const DirectorGateModal = ({ approval, onClose }) => {
         </div>
         {approval.license && (
           <div className="flex items-center gap-2 text-[11px] text-green bg-green/10 border border-green/30 p-2.5 rounded-sm"><ShieldCheck className="h-4 w-4" /> Commercial compliance verified: {approval.license} ({approval.license_class})</div>
+        )}
+        {!isDirector && (
+          <div className="flex items-center gap-2 text-[11px] text-amber bg-amber/10 border border-amber/30 p-2.5 rounded-sm" data-testid="gate-locked-notice"><Lock className="h-4 w-4" /> Sign in as Director to approve or reject this gate.</div>
         )}
         <div className="flex items-center justify-between border-t border-line pt-4">
           <Btn variant="danger" disabled={busy} onClick={() => decide(rejectGate, 'rejected')} data-testid="gate-reject-btn"><Ban className="h-3.5 w-3.5" /> Reject & recalibrate</Btn>

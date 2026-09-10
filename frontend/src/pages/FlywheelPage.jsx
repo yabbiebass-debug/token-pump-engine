@@ -8,6 +8,10 @@ import { CurveProgress } from '@/components/flywheel/CurveProgress';
 import { InjectionChart } from '@/components/flywheel/InjectionChart';
 import { LedgerTable } from '@/components/flywheel/LedgerTable';
 import { ConfigPanel } from '@/components/flywheel/ConfigPanel';
+import { AlertsPanel } from '@/components/flywheel/AlertsPanel';
+import { LiveBuybackPanel } from '@/components/flywheel/LiveBuybackPanel';
+import { MiningPanel } from '@/components/flywheel/MiningPanel';
+import { MiningSetup } from '@/components/flywheel/MiningSetup';
 
 export default function FlywheelPage() {
   const { data, isLoading } = useFlywheel();
@@ -24,6 +28,7 @@ export default function FlywheelPage() {
       <FlowDiagram data={data} />
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-5 space-y-6">
+          <LiveBuybackPanel data={data} />
           <ReservePanel data={data} />
           <GovernorPanel data={data} />
         </div>
@@ -33,8 +38,12 @@ export default function FlywheelPage() {
         </div>
       </div>
       <div className="grid gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-5"><MiningPanel /></div>
+        <div className="lg:col-span-7"><MiningSetup /></div>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8"><LedgerTable ledger={ledger || []} /></div>
-        <div className="lg:col-span-4"><ConfigPanel config={data.config} /></div>
+        <div className="lg:col-span-4 space-y-6"><ConfigPanel config={data.config} /><AlertsPanel /></div>
       </div>
     </div>
   );

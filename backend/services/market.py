@@ -1,3 +1,4 @@
+import asyncio
 import os
 import time
 import logging
@@ -185,3 +186,66 @@ async def verify_signature(signature: str):
     if not val:
         return {'valid': False, 'status': None}
     return {'valid': True, 'status': val.get('confirmationStatus') or 'confirmed', 'slot': val.get('slot'), 'err': val.get('err')}
+
+
+async def get_transaction(signature: str):
+    return await rpc('getTransaction', [signature, {'encoding': 'jsonParsed', 'maxSupportedTransactionVersion': 0, 'commitment': 'confirmed'}])
+
+
+async def fetch_tx_retry(signature: str, attempts: int = 8, delay: float = 2.5):
+    for _ in range(attempts):
+        try:
+            tx = await get_transaction(signature)
+        except RuntimeError as e:
+            if 'Invalid param' in str(e):
+                raise ValueError('malformed signature')
+            log.warning('getTransaction failed: %s', e)
+            tx = None
+        if tx:
+            return tx
+        await asyncio.sleep(delay)
+    return None
+
+
+def sol_received_by(tx: dict, address: str):
+    keys = [k['pubkey'] if isinstance(k, dict) else k for k in tx['transaction']['message']['accountKeys']]
+    if address not in keys:
+        return None
+    i = keys.index(address)
+    return (tx['meta']['postBalances'][i] - tx['meta']['preBalances'][i]) / 1e9
+
+
+def token_delta_for(tx: dict, owner: str, mint: str) -> float:
+    def total(rows):
+        return sum(float((r.get('uiTokenAmount') or {}).get('uiAmount') or 0) for r in rows or [] if r.get('mint') == mint and r.get('owner') == owner)
+    return total(tx['meta'].get('postTokenBalances')) - total(tx['meta'].get('preTokenBalances'))
+
+
+async def get_token_balance(owner: str, mint: str) -> float:
+    key = f'tokbal:{owner}:{mint}'
+    c = _get(key, 20)
+    if c is not None:
+        return c
+    res = await rpc('getTokenAccountsByOwner', [owner, {'mint': mint}, {'encoding': 'jsonParsed'}])
+    total = 0.0
+    for acc in res.get('value', []):
+        total += float(acc['account']['data']['parsed']['info']['tokenAmount'].get('uiAmount') or 0)
+    return _set(key, total)
+
+
+def invalidate(*keys):
+    for k in keys:
+        _cache.pop(k, None)
+
+
+JUP_SWAP = 'https://lite-api.jup.ag/swap/v1'
+
+
+async def jup_quote(amount_lamports: int, slippage_bps: int):
+    return await fetch_json(f'{JUP_SWAP}/quote?inputMint={WSOL}&outputMint={TOKEN_MINT}&amount={amount_lamports}&slippageBps={slippage_bps}&restrictIntermediateTokens=true', timeout=20)
+
+
+async def jup_swap(quote: dict, user_pubkey: str):
+    body = {'quoteResponse': quote, 'userPublicKey': user_pubkey, 'wrapAndUnwrapSol': True, 'dynamicComputeUnitLimit': True,
+            'prioritizationFeeLamports': {'priorityLevelWithMaxLamports': {'priorityLevel': 'high', 'maxLamports': 1_000_000}}}
+    return await fetch_json(f'{JUP_SWAP}/swap', 'POST', body, timeout=25)

@@ -10,15 +10,15 @@ export const SiteFooter = () => (
       <div className="md:col-span-2 space-y-3">
         <div className="font-display text-[14px] font-black">YABB<span className="text-purple">AI</span> FORGE</div>
         <p className="text-dim leading-relaxed max-w-md">
-          An open-source product foundry with a token flywheel. We fork, merge, and forge tools for every niche — then route a fixed share of every purchase, every agent cycle, and every mined hash into the $BASH buyback reserve on Solana.
+          An open-source product foundry with a token flywheel. We fork, merge, and forge tools for every niche — paid in SOL, verified on Solana mainnet, with a fixed share of every payment earmarked for $BASH buybacks.
         </p>
-        <p className="text-[10px] text-dim2 leading-relaxed max-w-md">
-          Buybacks in this build run in SIMULATED (paper) mode against live pump.fun bonding-curve math. No wallet keys are held and no live orders are placed. Payments are demo checkouts. Nothing here is financial advice.
+        <p className="text-[10px] text-dim2 leading-relaxed max-w-md" data-testid="footer-disclosure">
+          Buybacks are real pump.fun transactions signed by the Director from the disclosed treasury wallet and linked on Solscan. SOL is the only accepted payment and every payment is verified on-chain. No private keys are held by the server. Nothing here is financial advice.
         </p>
       </div>
       <div className="space-y-2">
         <div className="text-[9.5px] uppercase tracking-[2px] text-dim font-bold">Navigate</div>
-        {[['/', 'Home'], ['/pricing', 'Pricing & Checkout'], ['/mission', 'Mission Control'], ['/flywheel', '$BASH Flywheel'], ['/pulse', 'Pulse Game']].map(([to, l]) => (
+        {[['/', 'Home'], ['/pricing', 'Pricing & Checkout'], ['/mission', 'Mission Control'], ['/flywheel', '$BASH Flywheel'], ['/transparency', 'Transparency Ledger'], ['/pulse', 'Pulse Game'], ['/login', 'Director Login']].map(([to, l]) => (
           <Link key={to} to={to} className="block text-dim hover:text-ink transition-colors" data-testid={`footer-link-${l.toLowerCase().replace(/[^a-z]+/g, '-')}`}>{l}</Link>
         ))}
       </div>

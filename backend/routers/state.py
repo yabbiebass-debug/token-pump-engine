@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from db import db
 from constants import AGENTS, STAGES, GATED, PACKAGES, TIERS, SOL_RECIPIENT, TOKEN_MINT
 from models import AutoCycleUpdate
+from services.auth import get_current_director
 from services.events import get_app_state, add_event
 
 router = APIRouter(tags=['state'])
@@ -28,7 +29,7 @@ async def get_meta():
 
 
 @router.patch('/state/auto-cycle')
-async def set_auto_cycle(body: AutoCycleUpdate):
+async def set_auto_cycle(body: AutoCycleUpdate, user: dict = Depends(get_current_director)):
     await db.app_state.update_one({'key': 'state'}, {'$set': {'auto_cycle': body.auto_cycle}}, upsert=True)
     await add_event('DIRECTOR', f"Auto-cycle {'ENABLED (server-side, 60s interval)' if body.auto_cycle else 'DISABLED'} by Director.")
     return await get_app_state()

@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 3 LIVE_DIRECTOR_SIGNED verification complete. Backend: 11/11 pytest passed against preview URL — public /api/live/status (real 0.0015 SOL / 349,871 $BASH treasury), /api/live/quote (Pump.fun route), /api/live/quote?amount_sol=0 → 422, auth guards on build/confirm/dismiss/config, invalid mode → 422, mode switch → intent (bb-*, 0.25 SOL, trigger=fast_forward) → live.status.pending_intent set → alerts kind=intent status=unconfigured, build guards (404 unknown intent, 403 wrong wallet, 400 with '0.05 SOL floor' text for treasury), confirm guards (404 unknown, 422 'predates' for historic sig, 409 'not confirmed yet' for well-formed nonexistent sig), no LIVE ledger entry, /flywheel/inject during pending returns awaiting_signature, dismiss then switch SIMULATED then fast-forward = injected, ledger.csv includes 'mode' and 'tx_signature'. Frontend Playwright: anon /flywheel shows SIMULATED tag + 0.0015 SOL + 349.9k BASH + correct signer_link; switch btn redirects anon to /login?next=/flywheel; Director login → config-panel shows min_wallet_balance_sol=0.05, max_slippage_bps=300, signer_wallet=HTN1fv…; switch to LIVE flips tag to 'LIVE · Director-signed' and reveals live-wallet-connect; wallet-adapter modal lists Phantom + Solflare; switching back returns to SIMULATED; hero-treasury-balances / hero-mode-tag / transparency-treasury / transparency-mode-tag all render; regression pages (/, /mission, /flywheel, /transparency, /pricing, /pulse) load with zero Buffer/process runtime errors (only benign NotSameOrigin resource warnings). Final state: mode=SIMULATED, pending_intent=null, hourly_capacity_sol=0.25, auto_cycle=false.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/live/confirm", "issue": "A syntactically invalid base58 signature (e.g., '1'*88) makes Solana RPC raise 'Invalid param: WrongSize'; services/live._fetch_tx does not catch RuntimeError from services/market.rpc, so the request 500s instead of the intended 409 'not confirmed yet' or 422 'malformed signature'. Wrap _fetch_tx in try/except RuntimeError → return None (treat as unconfirmed), or validate base58 length in the pydantic model."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration_3.py",
+    "/app/test_reports/pytest/iteration_3.xml"
+  ],
+  "action_items": [
+    "Optional: harden POST /api/live/confirm against malformed base58 signatures (catch RuntimeError from Solana RPC 'WrongSize' → 409 or 422 instead of 500)."
+  ],
+  "critical_code_review_comments": [
+    "services/live.py::_fetch_tx swallows only the absence of a tx (returns None) but re-raises RPC RuntimeError, leaking a 500 to Director UX for any malformed signature. Add a try/except around await market.get_transaction(...) that treats RuntimeError as 'not yet confirmed'.",
+    "routers/live.py::ConfirmRequest validates length only (64–100). Add a base58 charset regex to fail-fast on obvious garbage before burning a Solana RPC call.",
+    "services/live.build recomputes wallet_snapshot after invalidate — good — but does not guard against Jupiter route regression between /quote (used in UI) and /build (server-side re-quotes). Minor: worth logging the quote diff to detect adverse re-quotes at execution time."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration_3.py"
+  ],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "100% (all critical live-mode + regression flows pass)"},
+  "test_credentials": "Director: bashammgaming@gmail.com / ChillOverdrive2017! (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Full flow created + dismissed one buyback intent (bb-*) via fast-forward; one SIMULATED injection re-created after switching back to verify parity. No LIVE ledger rows written (as required).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "New iteration-3 test file: /app/backend/tests/test_iteration_3.py (11 tests, all green in ~31s). Uses BASE = REACT_APP_BACKEND_URL with fallback read from /app/frontend/.env. Cleanup fixture always restores mode=SIMULATED and hourly_capacity_sol=0.25 and dismisses any pending intent. Frontend live-mode-switch-btn triggers a native confirm() dialog — auto-accept via page.on('dialog'). Wallet modal in preview browser lists Phantom + Solflare (adapters register even without extension). Note the confirm-endpoint malformed-signature 500 called out in minor issues.",
+  "rca of the issue": "Confirm-500 root cause: services/market.rpc raises RuntimeError on any {jsonrpc:{error}} payload. Solana rejects a signature whose base58 decodes to != 64 bytes with 'Invalid param: WrongSize'. services/live._fetch_tx only handles the null-result branch; the raised RuntimeError propagates through FastAPI as 500. Fix: wrap the get_transaction call in try/except RuntimeError inside _fetch_tx and return None (so confirm surfaces the intended 409 'not confirmed yet — wait and retry'), or add base58 validation on ConfirmRequest.signature (e.g., regex ^[1-9A-HJ-NP-Za-km-z]+$ plus a decoded-length check for exactly 64 bytes)."
+}

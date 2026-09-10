@@ -1,5 +1,7 @@
-from typing import Optional, Literal
+from typing import Optional, Literal, Dict
 from pydantic import BaseModel, Field
+
+SIGNATURE_RE = r'^[1-9A-HJ-NP-Za-km-z]{64,100}$'
 
 
 class LeadCreate(BaseModel):
@@ -17,6 +19,12 @@ class LeadStageUpdate(BaseModel):
     stage: Literal['SCOUT', 'QUALIFY', 'PITCH', 'CLOSE', 'BUILD', 'SHIP', 'SUPPORT', 'LOST']
 
 
+class ClientUpdate(BaseModel):
+    status: Optional[Literal['QUEUED', 'BUILDING', 'TESTING', 'LIVE', 'NEEDS_ATTENTION']] = None
+    build_pct: Optional[int] = Field(default=None, ge=0, le=100)
+    health: Optional[Literal['GREEN', 'AMBER', 'RED']] = None
+
+
 class AutoCycleUpdate(BaseModel):
     auto_cycle: bool
 
@@ -28,30 +36,27 @@ class PaymentCreate(BaseModel):
     package: str = 'Merge'
     custom_fee: Optional[int] = None
     tier: str = 'Upstream'
-    method: Literal['card', 'paypal', 'solana'] = 'card'
     scope: str = ''
     promo_code: str = ''
-    sol_signature: str = ''
+    sol_signature: str = Field(pattern=SIGNATURE_RE)
+    payer_wallet: str = ''
 
 
 class WithdrawalCreate(BaseModel):
-    mode: Literal['simulated', 'attest'] = 'simulated'
-    amount_sol: float = Field(gt=0)
-    destination_wallet: str = Field(min_length=32, max_length=48)
-    memo: str = 'Director Operational Sweep'
-    signature: str = ''
+    signature: str = Field(pattern=SIGNATURE_RE)
+    memo: str = 'Director treasury transfer'
 
 
 class FlywheelConfigUpdate(BaseModel):
+    signer_wallet: Optional[str] = Field(default=None, min_length=32, max_length=48)
+    min_wallet_balance_sol: Optional[float] = Field(default=None, ge=0, le=100)
+    max_slippage_bps: Optional[int] = Field(default=None, ge=10, le=2000)
     buyback_pct: Optional[float] = Field(default=None, ge=0, le=1)
-    stage_tap_pct: Optional[float] = Field(default=None, ge=0, le=0.1)
-    hashrate_khs: Optional[float] = Field(default=None, ge=0, le=1e9)
-    mined_symbol: Optional[Literal['XMR', 'KAS', 'LTC', 'RVN', 'ETC', 'BTC']] = None
-    mined_price_usd: Optional[float] = Field(default=None, ge=0)
-    yield_per_khs_hour: Optional[float] = Field(default=None, ge=0)
-    conversion_interval_min: Optional[int] = Field(default=None, ge=1, le=1440)
+    window_min: Optional[int] = Field(default=None, ge=1, le=1440)
     hourly_capacity_sol: Optional[float] = Field(default=None, ge=0)
     min_injection_sol: Optional[float] = Field(default=None, ge=0)
+    mining_share_pct: Optional[float] = Field(default=None, ge=0, le=1)
+    mining_hashrates: Optional[Dict[str, float]] = None
 
 
 class AgentDemoRequest(BaseModel):

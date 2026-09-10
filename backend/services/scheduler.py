@@ -3,7 +3,7 @@ import logging
 import time
 from datetime import timedelta
 from db import db
-from services import flywheel, market
+from services import flywheel, market, treasury, mining
 from services.cycle import run_cycle
 from services.events import get_app_state
 from services.util import utcnow, iso, parse
@@ -37,6 +37,8 @@ async def scheduler_loop():
             if time.time() - last_snapshot >= 60:
                 await snapshot_token()
                 last_snapshot = time.time()
+            await treasury.sync_if_stale(60)
+            await mining.sync_if_stale(60)
         except Exception as e:
             log.warning('scheduler tick failed: %s', e)
         await asyncio.sleep(15)

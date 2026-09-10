@@ -28,9 +28,9 @@ AGENTS = [
     {'name': 'FORGE', 'code': 'AGT-07', 'status': 'ACTIVE', 'activeCount': 2,
      'role': 'Audits every upstream license (MIT / Apache-2 / GPL / AGPL) so forks stay compliant and resale rights are clear'},
     {'name': 'TREASURER', 'code': 'AGT-08', 'status': 'ACTIVE', 'activeCount': 15,
-     'role': 'Verifies PayPal captures and Solana on-chain signatures; ledgers every sale and routes the buyback share into the $BASH flywheel'},
-    {'name': 'INJECTOR', 'code': 'AGT-09', 'status': 'ACTIVE', 'activeCount': 1,
-     'role': 'Executes $BASH bonding-curve buybacks from the SOL reserve under the capacity governor (SIMULATED mode in this build)'},
+     'role': 'Verifies every SOL payment and treasury transfer against Solana mainnet, ledgers it, and earmarks the buyback share for the $BASH flywheel'},
+    {'name': 'INJECTOR', 'code': 'AGT-09', 'status': 'GATED', 'activeCount': 1,
+     'role': 'Releases $BASH buybacks from the SOL reserve under the capacity governor; every buy is signed by the Director from the treasury wallet and verified on-chain'},
 ]
 
 PACKAGES = [

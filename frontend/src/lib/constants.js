@@ -51,8 +51,7 @@ export const SEVERITY_TONE = {
 
 export const LEDGER_TONE = {
   allocation: { label: 'ALLOCATION', cls: 'bg-purple/15 text-purple border-purple/40' },
-  stage_tap: { label: 'STAGE TAP', cls: 'bg-panel3 text-dim border-line-subtle' },
-  conversion: { label: 'CONVERSION', cls: 'bg-amber/10 text-amber border-amber/40' },
-  injection: { label: 'INJECTION', cls: 'bg-green/10 text-green border-green/40' },
+  injection: { label: 'BUYBACK · TX', cls: 'bg-green text-void border-green' },
   delayed: { label: 'DELAYED', cls: 'bg-red/10 text-red border-red/40' },
+  other: { label: 'ENTRY', cls: 'bg-panel3 text-dim border-line-subtle' },
 };

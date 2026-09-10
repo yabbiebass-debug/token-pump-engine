@@ -1,9 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getState, getMeta, getFlywheel, getLedger, getHistory, getTokenLive, getWallet, getVault } from '@/lib/api';
+import { getState, getMeta, getFlywheel, getLedger, getHistory, getTokenLive, getWallet, getVault, getLiveStatus, getTreasuryActivity, getMining } from '@/lib/api';
 
 const live = (interval) => ({ refetchInterval: interval, staleTime: 0, retry: 1 });
 
 export const useAppState = () => useQuery({ queryKey: ['state'], queryFn: getState, ...live(6000) });
+export const useLiveStatus = () => useQuery({ queryKey: ['live'], queryFn: getLiveStatus, ...live(10000) });
+export const useMining = () => useQuery({ queryKey: ['mining'], queryFn: getMining, ...live(30000) });
+export const useTreasuryActivity = () => useQuery({ queryKey: ['treasury-activity'], queryFn: getTreasuryActivity, ...live(30000) });
 export const useMeta = () => useQuery({ queryKey: ['meta'], queryFn: getMeta, staleTime: Infinity });
 export const useFlywheel = () => useQuery({ queryKey: ['flywheel'], queryFn: getFlywheel, ...live(5000) });
 export const useLedger = (limit = 120) => useQuery({ queryKey: ['ledger', limit], queryFn: () => getLedger(limit), ...live(8000) });

@@ -11,9 +11,9 @@ export const InjectionChart = ({ history }) => {
   return (
     <div className="grid gap-6 md:grid-cols-2" data-testid="injection-charts">
       <Panel className="p-4">
-        <Eyebrow className="mb-2 text-green">Cumulative simulated injections (SOL)</Eyebrow>
+        <Eyebrow className="mb-2 text-green">Cumulative on-chain buybacks (SOL)</Eyebrow>
         {inj.length === 0 ? (
-          <div className="h-[180px] flex items-center justify-center text-[11px] text-dim">No injections yet — run a cycle or a checkout.</div>
+          <div className="h-[180px] flex items-center justify-center text-[11px] text-dim text-center px-6">No buybacks yet — the chart fills as the Director signs governor releases.</div>
         ) : (
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={inj} margin={{ top: 6, right: 6, left: -18, bottom: 0 }}>
