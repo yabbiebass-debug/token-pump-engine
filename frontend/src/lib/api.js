@@ -83,6 +83,14 @@ export const syncTreasury = () => data(api.post('/treasury/sync'));
 export const updateClient = (id, body) => data(api.patch(`/clients/${id}`, body));
 export const updateFlywheelConfig = (body) => data(api.put('/flywheel/config', body));
 export const injectNow = () => data(api.post('/flywheel/inject'));
+export const getExecutorStatus = () => data(api.get('/executor/status'));
+export const executorBuy = (body) => data(api.post('/executor/buy', body));
+export const executorDrain = (trigger = 'manual') => data(api.post('/executor/drain', null, { params: { trigger } }));
+export const getSplitPolicy = () => data(api.get('/splits/policy'));
+export const runSplit = (body) => data(api.post('/splits', body));
+export const getSplitHistory = () => data(api.get('/splits/history'));
+export const getNodes = () => data(api.get('/nodes'));
+export const planNodes = (total_sol) => data(api.get('/nodes/plan', { params: { total_sol } }));
 export const sendTestAlert = () => data(api.post('/alerts/test'));
 
 export const errMsg = (e) => {

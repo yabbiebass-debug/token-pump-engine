@@ -1,0 +1,33 @@
+steps:
+  # Backend → Cloud Run (the executor + scheduler live here)
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/pump-engine/backend:$SHORT_SHA', '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/pump-engine/backend:latest', '-f', 'Dockerfile', '.']
+  - name: gcr.io/cloud-builders/docker
+    args: ['push', '--all-tags', '$_REGION-docker.pkg.dev/$PROJECT_ID/pump-engine/backend']
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - pump-engine-backend
+      - '--image=$_REGION-docker.pkg.dev/$PROJECT_ID/pump-engine/backend:$SHORT_SHA'
+      - '--region=$_REGION'
+      - '--allow-unauthenticated'
+      - '--min-instances=1'   # scheduler + governor tick must never scale to zero
+      - '--max-instances=3'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--set-secrets=MONGO_URL=mongo-url:latest,EXECUTOR_SECRET_KEY=executor-secret-key:latest,NODE_API_KEY=node-api-key:latest,EMERGENT_LLM_KEY=emergent-llm-key:latest'
+      - '--set-env-vars=DB_NAME=token_pump_engine,SOLANA_RPC_URL=https://api.mainnet-beta.solana.com,EXECUTOR_ENABLED=true,EXECUTOR_PUBKEY=HTN1fvHwbzKiMwh9YXZEe3eooiMdoCAs3TweWdiSZV5i'
+  # Frontend → Firebase App Hosting (Google AI Studio app)
+  - name: gcr.io/cloud-builders/npm
+    args: ['--prefix', 'frontend', 'ci']
+  - name: gcr.io/cloud-builders/npm
+    args: ['--prefix', 'frontend', 'run', 'build']
+    env:
+      - 'REACT_APP_BACKEND_URL=$_BACKEND_URL'
+substitutions:
+  _REGION: us-central1
+  _BACKEND_URL: https://pump-engine-backend-xxx.a.run.app
+options:
+  logging: CLOUD_LOGGING_ONLY

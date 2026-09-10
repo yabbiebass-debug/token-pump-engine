@@ -1,0 +1,12 @@
+# Firebase App Hosting — Google AI Studio frontend target.
+# Connect this repo in Firebase console → App Hosting → Create backend.
+# Root directory: frontend  |  Build command: npm ci && npm run build
+runConfig:
+  minInstances: 0
+  maxInstances: 2
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+env:
+  - variable: REACT_APP_BACKEND_URL
+    secret: backend-url
